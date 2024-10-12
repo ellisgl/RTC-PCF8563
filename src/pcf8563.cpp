@@ -50,11 +50,11 @@ uint32_t PCF8563_Class::getDayOfWeek(uint32_t day, uint32_t month, uint32_t year
 
 void PCF8563_Class::setDateTime(
     uint16_t year,
-    uint8_t month,
-    uint8_t day,
-    uint8_t hour,
-    uint8_t minute,
-    uint8_t second
+    uint8_t  month,
+    uint8_t  day,
+    uint8_t  hour,
+    uint8_t  minute,
+    uint8_t  second
 ) {
     _data[0] = _dec_to_bcd(second) & (~PCF8563_VOL_LOW_MASK);
     _data[1] = _dec_to_bcd(minute);
@@ -144,18 +144,16 @@ void PCF8563_Class::setAlarm(RTC_Alarm alarm) {
 }
 
 void PCF8563_Class::setAlarm(uint8_t hour, uint8_t minute, uint8_t day, uint8_t weekday) {
+    _data[0] = PCF8563_ALARM_ENABLE;
     if (minute != PCF8563_NO_ALARM) {
         _data[0] = _dec_to_bcd(constrain(minute, 0, 59));
         _data[0] &= ~PCF8563_ALARM_ENABLE;
-    } else {
-        _data[0] = PCF8563_ALARM_ENABLE;
     }
 
+    _data[1] = PCF8563_ALARM_ENABLE;
     if (hour != PCF8563_NO_ALARM) {
         _data[1] = _dec_to_bcd(constrain(hour, 0, 23));
         _data[1] &= ~PCF8563_ALARM_ENABLE;
-    } else {
-        _data[1] = PCF8563_ALARM_ENABLE;
     }
 
     if (day != PCF8563_NO_ALARM) {
@@ -195,11 +193,7 @@ bool PCF8563_Class::isTimerEnable() {
     _readByte(PCF8563_STAT2_REG, 1, &_data[0]);
     _readByte(PCF8563_TIMER1_REG, 1, &_data[1]);
 
-    if (_data[0] & PCF8563_TIMER_TIE) {
-        return _data[1] & PCF8563_TIMER_TE ? true : false;
-    }
-
-    return false;
+    return _data[0] & PCF8563_TIMER_TIE && _data[1] & PCF8563_TIMER_TE;
 }
 
 bool PCF8563_Class::isTimerActive() {
@@ -328,20 +322,6 @@ void PCF8563_Class::syncToSystem() {
 }
 #endif
 
-bool PCF8563_Class::syncToRtc(bool useGmt = false) {
-    if (useGmt) {
-        return syncToRtcUsingGmt();
-    }
-
-    time_t now;
-    struct tm info;
-    time(&now);
-    localtime_r(&now, &info);
-    setDateTime(info.tm_year + 1900, info.tm_mon + 1, info.tm_mday, info.tm_hour, info.tm_min, info.tm_sec);
-
-    return true;
-}
-
 bool PCF8563_Class::syncToRtcUsingGmt() {
     time_t epoch;
     struct tm gmt;
@@ -360,6 +340,20 @@ bool PCF8563_Class::syncToRtcUsingGmt() {
     #endif
 
     return false;
+}
+
+bool PCF8563_Class::syncToRtc(bool useGmt = false) {
+    if (useGmt) {
+        return syncToRtcUsingGmt();
+    }
+
+    time_t now;
+    struct tm info;
+    time(&now);
+    localtime_r(&now, &info);
+    setDateTime(info.tm_year + 1900, info.tm_mon + 1, info.tm_mday, info.tm_hour, info.tm_min, info.tm_sec);
+
+    return true;
 }
 
 uint8_t RTC_Date::StringToUint8(const char *pString) {
@@ -395,11 +389,15 @@ RTC_Date::RTC_Date(const char *date, const char *time) {
         case 'J':
             if (date[1] == 'a') {
                 month = 1;
-            } else if (date[2] == 'n') {
-                month = 6;
-            } else {
-                month = 7;
+                break;
             }
+
+            if (date[2] == 'n') {
+                month = 6;
+                break;
+            }
+
+            month = 7;
             break;
 
         case 'F':
