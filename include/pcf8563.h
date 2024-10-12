@@ -114,7 +114,7 @@ class RTC_Alarm
 class PCF8563_Class
 {
     public:
-        int begin(TwoWire &port = Wire, uint8_t addr = PCF8563_SLAVE_ADDRESS);
+        uint8_t begin(TwoWire &port = Wire, uint8_t addr = PCF8563_SLAVE_ADDRESS);
         void check();
         void setDateTime(
             uint16_t year,

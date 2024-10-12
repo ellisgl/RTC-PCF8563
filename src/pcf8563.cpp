@@ -7,12 +7,12 @@
 #include <time.h>
 #include <sys/time.h>
 
-int PCF8563_Class::begin(TwoWire &port, uint8_t addr) {
+uint8_t PCF8563_Class::begin(TwoWire &port, uint8_t addr) {
     _i2cPort = &port;
     _address = addr;
     _i2cPort->beginTransmission(_address);
 
-    return (_i2cPort->endTransmission() == 0);
+    return _i2cPort->endTransmission();
 }
 
 void PCF8563_Class::check() {
