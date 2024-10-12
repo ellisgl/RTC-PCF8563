@@ -4,6 +4,9 @@
  * github:https://github.com/lewisxhe/PCF8563_Library
  */
 #pragma once
+// Technically we shouldn't need ifndef/define/endif here, but it's just incase of any compiler oddness.
+#ifndef PCF8563_H
+#define PCF8563_H
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -201,3 +204,5 @@ class PCF8563_Class
         bool _voltageLow;
         char format[128];
 };
+
+#endif
