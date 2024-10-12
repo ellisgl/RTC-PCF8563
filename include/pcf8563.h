@@ -150,7 +150,8 @@ class PCF8563_Class
     #ifdef ESP32
         void syncToSystem();
     #endif
-        void syncToRtc();
+        bool syncToRtc(bool useGmt);
+        bool syncToRtcUsingGmt();
         const char *formatDateTime(uint8_t sytle = PCF_TIMEFORMAT_HMS);
         uint32_t getDayOfWeek(uint32_t day, uint32_t month, uint32_t year);
         uint8_t status2();

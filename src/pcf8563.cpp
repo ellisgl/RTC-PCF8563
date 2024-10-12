@@ -304,36 +304,62 @@ const char *PCF8563_Class::formatDateTime(uint8_t sytle) {
 
 #ifdef ESP32
 void PCF8563_Class::syncToSystem() {
-    struct tm t_tm;
-    struct timeval val;
+    if (PCF8563_Class::isValid()) {
+        struct tm t_tm;
+        struct timeval val;
 
-    RTC_Date dt  = getDateTime();
-    t_tm.tm_hour = dt.hour;
-    t_tm.tm_min  = dt.minute;
-    t_tm.tm_sec  = dt.second;
-    t_tm.tm_year = dt.year - 1900;  //Year, whose value starts from 1900
-    t_tm.tm_mon  = dt.month - 1;    //Month (starting from January, 0 for January) - Value range is [0,11]
-    t_tm.tm_mday = dt.day;
-    val.tv_sec   = mktime(&t_tm);
-    val.tv_usec  = 0;
+        RTC_Date dt  = getDateTime();
+        t_tm.tm_hour = dt.hour;
+        t_tm.tm_min  = dt.minute;
+        t_tm.tm_sec  = dt.second;
+        t_tm.tm_year = dt.year - 1900;  //Year, whose value starts from 1900
+        t_tm.tm_mon  = dt.month - 1;    //Month (starting from January, 0 for January) - Value range is [0,11]
+        t_tm.tm_mday = dt.day;
 
-    settimeofday(&val, NULL);
+        val.tv_sec   = mktime(&t_tm);
+        val.tv_usec  = 0;
+
+        settimeofday(&val, NULL);
+
+        return;
+    }
+
+    ESP_LOGE("RTC Time is not Valid", "System Epoch Not Set");
 }
 #endif
 
-void PCF8563_Class::syncToRtc() {
+bool PCF8563_Class::syncToRtc(bool useGmt = false) {
+    if (useGmt) {
+        return syncToRtcUsingGmt();
+    }
+
     time_t now;
     struct tm info;
     time(&now);
     localtime_r(&now, &info);
     setDateTime(info.tm_year + 1900, info.tm_mon + 1, info.tm_mday, info.tm_hour, info.tm_min, info.tm_sec);
+
+    return true;
 }
 
-RTC_Date::RTC_Date() : year(0), month(0), day(0), hour(0), minute(0), second(0) {
-}
+bool PCF8563_Class::syncToRtcUsingGmt() {
+    time_t epoch;
+    struct tm gmt;
+    time(&epoch);
 
-RTC_Date::RTC_Date(uint16_t y, uint8_t m, uint8_t d, uint8_t h, uint8_t mm, uint8_t s)
-    : year(y), month(m), day(d), hour(h), minute(mm), second(s) {
+    // Is epoch is between 1970 and 2100?
+    if (epoch > 0 && epoch < 4102444800) {
+        gmtime_r(&epoch, &gmt);
+        setDateTime(gmt.tm_year + 1900, gmt.tm_mon + 1, gmt.tm_mday, gmt.tm_hour, gmt.tm_min, gmt.tm_sec);
+
+        return true;
+    }
+
+    #ifdef ESP32
+    ESP_LOGE("ESP32 Time is not Valid", "RTC Time Not Set");
+    #endif
+
+    return false;
 }
 
 uint8_t RTC_Date::StringToUint8(const char *pString) {
@@ -352,6 +378,13 @@ uint8_t RTC_Date::StringToUint8(const char *pString) {
     }
 
     return value;
+}
+
+RTC_Date::RTC_Date() : year(0), month(0), day(0), hour(0), minute(0), second(0) {
+}
+
+RTC_Date::RTC_Date(uint16_t y, uint8_t m, uint8_t d, uint8_t h, uint8_t mm, uint8_t s)
+    : year(y), month(m), day(d), hour(h), minute(mm), second(s) {
 }
 
 RTC_Date::RTC_Date(const char *date, const char *time) {
