@@ -1,0 +1,12 @@
+{
+  "name": "RTC-PCF8563",
+  "keywords": "RTC, PCF8563, clock",
+  "description": "A library to interface with the PCF8523 Real Time Clock.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EllisGL/RTC-PCF8523.git"
+  },
+  "version": "1.0..",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
