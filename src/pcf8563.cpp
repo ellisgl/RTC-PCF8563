@@ -73,9 +73,15 @@ void PCF8563_Class::setDateTime(
     _writeByte(PCF8563_SEC_REG, 7, _data);
 }
 
+// [[deprecated("Use isValid() instead.")]]
+__attribute__((deprecated("Use isValid() instead.")))
 bool PCF8563_Class::isVaild() {
-    _readByte(PCF8563_SEC_REG, 1, &_isVaild);
-    return !(_isVaild & (1 << 7));
+    return isValid();
+}
+
+bool PCF8563_Class::isValid() {
+    _readByte(PCF8563_SEC_REG, 1, &_isValid);
+    return !(_isValid & (1 << 7));
 }
 
 RTC_Date PCF8563_Class::getDateTime() {

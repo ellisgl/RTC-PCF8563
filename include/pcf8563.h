@@ -134,6 +134,7 @@ class PCF8563_Class
         void setAlarm(RTC_Alarm alarm);
         void setAlarm(uint8_t hour, uint8_t minute, uint8_t day, uint8_t weekday);
         bool isVaild();
+        bool isValid();
         void setAlarmByWeekDay(uint8_t weekday);
         void setAlarmByHours(uint8_t hour);
         void setAlarmByDays(uint8_t day);
@@ -195,7 +196,7 @@ class PCF8563_Class
             return 0;
         }
 
-        uint8_t _isVaild = false;
+        uint8_t _isValid = false;
         int _address;
         bool _init = false;
         TwoWire *_i2cPort;
