@@ -93,7 +93,6 @@ class RTC_Date
         uint8_t StringToUint8(const char *pString);
 };
 
-
 class RTC_Alarm
 {
     public:
@@ -187,7 +186,7 @@ class PCF8563_Class
         {
             _i2cPort->beginTransmission(_address);
             _i2cPort->write(reg);
-            for (uint8_t i = 0; i < nbytes; i++) {
+            for (uint8_t i = 0; i < nbytes; ++i) {
                 _i2cPort->write(data[i]);
             }
 

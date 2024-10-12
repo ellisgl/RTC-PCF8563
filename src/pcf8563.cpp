@@ -37,7 +37,7 @@ uint32_t PCF8563_Class::getDayOfWeek(uint32_t day, uint32_t month, uint32_t year
 
     if (month < 3) {
         month = 12u + month;
-        year--;
+        --year;
     }
 
     val = (day + (((month + 1u) * 26u) / 10u) + year + (year / 4u) + (6u * (year / 100u)) + (year / 400u)) % 7u;
@@ -335,14 +335,14 @@ uint8_t RTC_Date::StringToUint8(const char *pString) {
 
     // skip leading 0 and spaces
     while ('0' == *pString || *pString == ' ') {
-        pString++;
+        ++pString;
     }
 
     // calculate number until we hit non-numeral char
     while ('0' <= *pString && *pString <= '9') {
         value *= 10;
         value += *pString - '0';
-        pString++;
+        ++pString;
     }
 
     return value;
