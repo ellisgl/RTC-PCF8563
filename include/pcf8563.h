@@ -65,133 +65,139 @@ enum {
 
 class RTC_Date
 {
-public:
-    RTC_Date();
-    RTC_Date(const char *date, const char *time);
-    RTC_Date(uint16_t year,
-             uint8_t month,
-             uint8_t day,
-             uint8_t hour,
-             uint8_t minute,
-             uint8_t second
-            );
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-    bool operator==(RTC_Date d);
-private:
-    uint8_t StringToUint8(const char *pString);
+    public:
+        RTC_Date();
+        RTC_Date(const char *date, const char *time);
+        RTC_Date(
+            uint16_t year,
+            uint8_t month,
+            uint8_t day,
+            uint8_t hour,
+            uint8_t minute,
+            uint8_t second
+        );
+
+        uint16_t year;
+        uint8_t month;
+        uint8_t day;
+        uint8_t hour;
+        uint8_t minute;
+        uint8_t second;
+
+        bool operator==(RTC_Date d);
+
+    private:
+        uint8_t StringToUint8(const char *pString);
 };
 
 
 class RTC_Alarm
 {
-public:
-    RTC_Alarm(void);
-    RTC_Alarm(
-        uint8_t minute,
-        uint8_t hour,
-        uint8_t day,
-        uint8_t weekday
-    );
-    uint8_t minute;
-    uint8_t hour;
-    uint8_t day;
-    uint8_t weekday;
+    public:
+        RTC_Alarm(void);
+        RTC_Alarm(
+            uint8_t minute,
+            uint8_t hour,
+            uint8_t day,
+            uint8_t weekday
+        );
+
+        uint8_t minute;
+        uint8_t hour;
+        uint8_t day;
+        uint8_t weekday;
 };
 
 
 class PCF8563_Class
 {
-public:
-    int begin(TwoWire &port = Wire, uint8_t addr = PCF8563_SLAVE_ADDRESS);
+    public:
+        int begin(TwoWire &port = Wire, uint8_t addr = PCF8563_SLAVE_ADDRESS);
+        void check();
+        void setDateTime(
+            uint16_t year,
+            uint8_t month,
+            uint8_t day,
+            uint8_t hour,
+            uint8_t minute,
+            uint8_t second
+        );
+        void setDateTime(RTC_Date date);
+        RTC_Date getDateTime();
+        RTC_Alarm getAlarm();
+        void enableAlarm();
+        void disableAlarm();
+        bool alarmActive();
+        void resetAlarm();
+        void setAlarm(RTC_Alarm alarm);
+        void setAlarm(uint8_t hour, uint8_t minute, uint8_t day, uint8_t weekday);
+        bool isVaild();
+        void setAlarmByWeekDay(uint8_t weekday);
+        void setAlarmByHours(uint8_t hour);
+        void setAlarmByDays(uint8_t day);
+        void setAlarmByMinutes(uint8_t minute);
+        bool isTimerEnable();
+        bool isTimerActive();
+        void enableTimer();
+        void disableTimer();
+        void setTimer(uint8_t val, uint8_t freq, bool enIntrrupt);
+        void clearTimer();
+        bool enableCLK(uint8_t freq);
+        void disableCLK();
+    #ifdef ESP32
+        void syncToSystem();
+    #endif
+        void syncToRtc();
+        const char *formatDateTime(uint8_t sytle = PCF_TIMEFORMAT_HMS);
+        uint32_t getDayOfWeek(uint32_t day, uint32_t month, uint32_t year);
+        uint8_t status2();
 
-    void check();
-
-    void setDateTime(uint16_t year,
-                     uint8_t month,
-                     uint8_t day,
-                     uint8_t hour,
-                     uint8_t minute,
-                     uint8_t second);
-
-    void setDateTime(RTC_Date date);
-    RTC_Date getDateTime();
-    RTC_Alarm getAlarm();
-    void enableAlarm();
-    void disableAlarm();
-    bool alarmActive();
-    void resetAlarm();
-    void setAlarm(RTC_Alarm alarm);
-    void setAlarm(uint8_t hour, uint8_t minute, uint8_t day, uint8_t weekday);
-    bool isVaild();
-
-    void setAlarmByWeekDay(uint8_t weekday);
-    void setAlarmByHours(uint8_t hour);
-    void setAlarmByDays(uint8_t day);
-    void setAlarmByMinutes(uint8_t minute);
-
-    bool isTimerEnable();
-    bool isTimerActive();
-    void enableTimer();
-    void disableTimer();
-    void setTimer(uint8_t val, uint8_t freq, bool enIntrrupt);
-    void clearTimer();
-
-
-    bool enableCLK(uint8_t freq);
-    void disableCLK();
-#ifdef ESP32
-    void syncToSystem();
-#endif
-    void syncToRtc();
-
-    const char *formatDateTime(uint8_t sytle = PCF_TIMEFORMAT_HMS);
-    uint32_t getDayOfWeek(uint32_t day, uint32_t month, uint32_t year);
-    uint8_t status2();
-
-private:
-    uint8_t _bcd_to_dec(uint8_t val)
-    {
-        return ( (val / 16 * 10) + (val % 16) );
-    }
-    uint8_t _dec_to_bcd(uint8_t val)
-    {
-        return ( (val / 10 * 16) + (val % 10) );
-    }
-    int _readByte(uint8_t reg, int nbytes, uint8_t *data)
-    {
-        _i2cPort->beginTransmission(_address);
-        _i2cPort->write(reg);
-
-        //Adapt to HYM8563, no stop bit is sent after reading the sending register address
-        _i2cPort->endTransmission(false);
-        _i2cPort->requestFrom(_address, nbytes, 1);  //HYM8563 send stopbit
-
-        uint8_t index = 0;
-        while (_i2cPort->available())
-            data[index++] = _i2cPort->read();
-        return 0;
-    }
-    int _writeByte(uint8_t reg, uint8_t nbytes, uint8_t *data)
-    {
-        _i2cPort->beginTransmission(_address);
-        _i2cPort->write(reg);
-        for (uint8_t i = 0; i < nbytes; i++) {
-            _i2cPort->write(data[i]);
+    private:
+        uint8_t _bcd_to_dec(uint8_t val)
+        {
+            return ( (val / 16 * 10) + (val % 16) );
         }
-        _i2cPort->endTransmission();
-        return 0;
-    }
 
-    uint8_t _isVaild = false;
-    int _address;
-    bool _init = false;
-    TwoWire *_i2cPort;
-    uint8_t _data[16];
-    bool _voltageLow;
-    char format[128];
+        uint8_t _dec_to_bcd(uint8_t val)
+        {
+            return ( (val / 10 * 16) + (val % 10) );
+        }
+
+        int _readByte(uint8_t reg, int nbytes, uint8_t *data)
+        {
+            _i2cPort->beginTransmission(_address);
+            _i2cPort->write(reg);
+
+            //Adapt to HYM8563, no stop bit is sent after reading the sending register address
+            _i2cPort->endTransmission(false);
+            _i2cPort->requestFrom(_address, nbytes, 1);  //HYM8563 send stopbit
+
+            uint8_t index = 0;
+            while (_i2cPort->available()) {
+                data[index++] = _i2cPort->read();
+            }
+
+            return 0;
+        }
+
+        int _writeByte(uint8_t reg, uint8_t nbytes, uint8_t *data)
+        {
+            _i2cPort->beginTransmission(_address);
+            _i2cPort->write(reg);
+            for (uint8_t i = 0; i < nbytes; i++) {
+                _i2cPort->write(data[i]);
+            }
+
+            _i2cPort->endTransmission();
+
+            return 0;
+        }
+
+        uint8_t _isVaild = false;
+        int _address;
+        bool _init = false;
+        TwoWire *_i2cPort;
+        uint8_t _data[16];
+        bool _voltageLow;
+        char format[128];
 };
