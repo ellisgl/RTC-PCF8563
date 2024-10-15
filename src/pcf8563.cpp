@@ -90,7 +90,7 @@ bool PCF8563_Class::isValid() {
 
 RTC_Date PCF8563_Class::getDateTime() {
     uint16_t year;
-    uint8_t  cetury = 0;
+    uint8_t  century = 0;
 
     _readByte(PCF8563_SEC_REG, 7, _data);
     _voltageLow = (_data[0] & PCF8563_VOL_LOW_MASK);
@@ -99,10 +99,10 @@ RTC_Date PCF8563_Class::getDateTime() {
     _data[2]    = _bcd_to_dec(_data[2] & PCF8563_HOUR_MASK);
     _data[3]    = _bcd_to_dec(_data[3] & PCF8563_DAY_MASK);
     _data[4]    = _bcd_to_dec(_data[4] & PCF8563_WEEKDAY_MASK);
-    cetury      = _data[5] & PCF8563_CENTURY_MASK;
+    century     = _data[5] & PCF8563_CENTURY_MASK;
     _data[5]    = _bcd_to_dec(_data[5] & PCF8563_MONTH_MASK);
     year        = _bcd_to_dec(_data[6]);
-    year = cetury ? 1900 + year : 2000 + year;
+    year        = century ? 1900 + year : 2000 + year;
 
     return RTC_Date(year, _data[5], _data[3], _data[2], _data[1], _data[0]);
 }
